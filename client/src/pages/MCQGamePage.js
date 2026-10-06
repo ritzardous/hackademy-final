@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { gameAPI } from '../utils/api'
-import styles from '../styles/MCQGamePage.module.css'
+import styles from '../styles/GamePage.module.css'
+import QuitDialog from '../components/QuitDialog'
 import {
   Award,
   RefreshCw,
@@ -33,6 +34,7 @@ const MCQGamePage = ({ currentUser }) => {
   const [timeTakenForQuestion, setTimeTakenForQuestion] = useState(0)
   const [gameCompleted, setGameCompleted] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [startError, setStartError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [showQuitConfirm, setShowQuitConfirm] = useState(false)
   
@@ -41,8 +43,10 @@ const MCQGamePage = ({ currentUser }) => {
 
   const startNewGame = useCallback(async () => {
     setLoading(true)
+    setStartError('')
     try {
       const resp = await gameAPI.startGame(currentUser, 'mcq')
+      if (!resp.success || !resp.data?.questions?.length) throw new Error('Round unavailable')
       if (resp.success) {
         setQuestions(resp.data.questions)
         setSessionId(resp.data.sessionId)
@@ -60,6 +64,7 @@ const MCQGamePage = ({ currentUser }) => {
       }
     } catch (e) {
       console.error(e)
+      setStartError('We couldn’t load your round. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -188,14 +193,18 @@ const MCQGamePage = ({ currentUser }) => {
 
   if (loading && questions.length === 0) {
     return (
-      <div className={styles.gamePage} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'white' }}>
-        <Loader className={styles.loadingIcon} size={48} />
+      <div className={styles.gamePage}>
+        <div className={`${styles.gameContainer} ${styles.loadingState}`} role="status"><Loader className={styles.loadingIcon} size={48} /><p>Getting your round ready…</p></div>
       </div>
     )
   }
 
   if (!currentUser) {
     return <div>Redirecting...</div>
+  }
+
+  if (startError && questions.length === 0) {
+    return <div className={styles.gamePage}><div className={`${styles.gameContainer} ${styles.errorState}`} role="alert"><h2>Your round isn’t ready yet.</h2><p>{startError}</p><button onClick={startNewGame} className={styles.nextButton}><RefreshCw size={20} /> Try again</button><button onClick={() => navigate('/games')} className={styles.backButton}><ArrowLeft size={20} /> Back to arcade</button></div></div>
   }
 
   if (showResult) {
@@ -252,38 +261,18 @@ const MCQGamePage = ({ currentUser }) => {
       <div className={styles.ambientLight} />
       <div className={styles.gridOverlay} />
 
-      {showQuitConfirm && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)' }}>
-          <div style={{ background: '#121218', border: '1px solid rgba(168, 85, 247, 0.3)', padding: '2rem', borderRadius: '16px', maxWidth: '400px', width: '90%', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
-            <h3 style={{ color: '#fff', fontSize: '1.4rem', marginBottom: '1rem', fontFamily: 'Orbitron, sans-serif' }}>Abandon Training?</h3>
-            <p style={{ color: '#a1a1aa', fontSize: '1rem', marginBottom: '8px' }}>Your progress will be lost and no score will be saved.</p>
-            <p style={{ color: '#a855f7', fontSize: '0.9rem', marginBottom: '2rem' }}>This strictly will not affect your ranking.</p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <button 
-                onClick={() => setShowQuitConfirm(false)} 
-                style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid #52525b', color: '#e4e4e7', borderRadius: '8px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '1rem' }}
-              >Cancel</button>
-              <button 
-                onClick={() => { setShowQuitConfirm(false); finishQuiz(true); }} 
-                style={{ flex: 1, padding: '12px', background: '#ef4444', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '1rem', fontWeight: '500' }}
-              >Quit</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <QuitDialog open={showQuitConfirm} onCancel={() => setShowQuitConfirm(false)} onConfirm={() => { setShowQuitConfirm(false); finishQuiz(true); }} />
 
       <div className={styles.gameContainer}>
         {!showResult && (
           <button 
-            onClick={() => setShowQuitConfirm(true)} 
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif', fontSize: '1rem', transition: 'color 0.2s', padding: 0, marginBottom: '20px' }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#ef4444'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
+            onClick={() => setShowQuitConfirm(true)} className={styles.backButton}
           >
             <ArrowLeft size={20} /> Back
           </button>
         )}
 
+        <h1 className={styles.gameTitle}>Knowledge check</h1>
         <div className={styles.gameHeader}>
           <div className={styles.progressInfo}>
             <div style={{ display: 'flex', gap: '15px' }}>
@@ -368,7 +357,7 @@ const MCQGamePage = ({ currentUser }) => {
               )}
 
               {isCorrect && bonusPoints > 0 && (
-                <span className={styles.bonusBadge} style={{marginLeft: '10px', background: '#f59e0b', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '0.85rem'}}>
+                <span className={styles.bonusBadge}>
                   +{bonusPoints} Bonus! 🎁 Time & Streak
                 </span>
               )}

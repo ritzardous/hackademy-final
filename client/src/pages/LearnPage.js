@@ -1,12 +1,7 @@
+import CyberArtwork from '../components/CyberArtwork'
 import React from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Shield,
-  AlertTriangle,
-  CreditCard,
-  Smartphone,
-  Briefcase,
-  Columns4,
   Gamepad2,
 } from 'lucide-react'
 import styles from '../styles/LearnPage.module.css'
@@ -31,7 +26,7 @@ const LearnPage = ({ currentUser }) => {
 
       <div className={styles.heroSection}>
         <h1 className={styles.heroTitle}>
-          <Shield className={styles.titleIcon} /> Learn About Common Scams
+          <CyberArtwork kind="brand" className={styles.titleIcon} /> Learn About Common Scams
         </h1>
         <p className={styles.heroDescription}>
           Scammers often target through calls, messages or apps.
@@ -43,7 +38,7 @@ const LearnPage = ({ currentUser }) => {
       <div className={styles.articlesGrid}>
         <Link to='/learn/digital-arrest-scam' className={styles.articleCard}>
           <div className={styles.articleContent}>
-            <Columns4 className={styles.articleIcon} />
+            <CyberArtwork kind="arrest" className={styles.articleIcon} />
             <h2>Digital Arrest Scam</h2>
             <p>
               Scammers pretend to be police or government officials and say you
@@ -58,7 +53,7 @@ const LearnPage = ({ currentUser }) => {
 
         <Link to='/learn/upi-payment-scams' className={styles.articleCard}>
           <div className={styles.articleContent}>
-            <CreditCard className={styles.articleIcon} />
+            <CyberArtwork kind="payment" className={styles.articleIcon} />
             <h2>UPI Payment Scams</h2>
             <p>
               Fraudsters may trick you into sending money through fake UPI apps
@@ -73,7 +68,7 @@ const LearnPage = ({ currentUser }) => {
 
         <Link to='/learn/ekyc-sim-swap' className={styles.articleCard}>
           <div className={styles.articleContent}>
-            <Smartphone className={styles.articleIcon} />
+            <CyberArtwork kind="identity" className={styles.articleIcon} />
             <h2>e-KYC / SIM Swap / Phone Number Theft</h2>
             <p>
               Scammers can take over your phone number and access your bank or
@@ -88,7 +83,7 @@ const LearnPage = ({ currentUser }) => {
 
         <Link to='/learn/fake-job-scams' className={styles.articleCard}>
           <div className={styles.articleContent}>
-            <Briefcase className={styles.articleIcon} />
+            <CyberArtwork kind="job" className={styles.articleIcon} />
             <h2>Work From Home Job Scams</h2>
             <p>
               Some offers promise easy work and high pay but ask for upfront
@@ -103,7 +98,7 @@ const LearnPage = ({ currentUser }) => {
 
         <Link to='/learn/whatsapp-stock-scam' className={styles.articleCard}>
           <div className={styles.articleContent}>
-            <AlertTriangle className={styles.articleIcon} />
+            <CyberArtwork kind="phishing" className={styles.articleIcon} />
             <h2>WhatsApp / Telegram Stock Market Group</h2>
             <p>
               Scammers send stock tips in WhatsApp or Telegram groups. They may

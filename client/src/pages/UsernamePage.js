@@ -1,19 +1,14 @@
+import CyberArtwork from '../components/CyberArtwork'
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { userAPI } from '../utils/api'
-import { Loader, ArrowRight, Terminal, ShieldAlert } from 'lucide-react'
+import { Loader, ArrowRight, Terminal, ShieldAlert, Check } from 'lucide-react'
 import styles from '../styles/UsernamePage.module.css'
 import commonStyles from '../styles/common.module.css'
 
 const funnyTexts = [
-  "Knocking on the backend's front door...",
-  "Bribing the firewall with virtual cookies...",
-  "Searching for a free tier slot on the cloud...",
-  "Sending carrier pigeons to the database...",
-  "Untangling the server's spaghetti code...",
-  "Looking for the 'Any' key...",
-  "Feeding the server hamsters...",
-  "Polishing the loading bars..."
+  'Getting your player profile ready…',
+  'Still connecting. Thanks for your patience.'
 ]
 
 const UsernamePage = ({ setUser }) => {
@@ -21,7 +16,7 @@ const UsernamePage = ({ setUser }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [forceLoginNeeded, setForceLoginNeeded] = useState(false)
-  const [loadingMessage, setLoadingMessage] = useState('Hold tight - the server is waking up...')
+  const [loadingMessage, setLoadingMessage] = useState('Getting your player profile ready…')
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -34,7 +29,7 @@ const UsernamePage = ({ setUser }) => {
         setLoadingMessage(funnyTexts[index]);
       }, 3000);
     } else {
-      setLoadingMessage('Hold tight - the server is waking up...'); // Reset
+      setLoadingMessage('Getting your player profile ready…');
     }
     return () => clearInterval(interval);
   }, [loading]);
@@ -95,8 +90,15 @@ const UsernamePage = ({ setUser }) => {
     <div className={styles.usernamePage}>
       <div className={styles.ambientLight} />
 
+      <div className={styles.welcome}>
+        <div className={styles.welcomeIcon} aria-hidden="true"><CyberArtwork kind="arcade" /></div>
+        <h1>Enter the<br /><span>playground.</span></h1>
+        <p>Practise spotting scams, build your defenses, and give your internet survival skills a name.</p>
+        <div className={styles.perks}><span><Check size={18} /> Free to play</span><span><Check size={18} /> No password needed</span><span><Check size={18} /> Your scores, your handle</span></div>
+      </div>
+
       <div className={styles.formContainer}>
-        <div className={styles.terminalDots}>
+        <div className={styles.terminalDots} aria-hidden="true">
           <span></span><span></span><span></span>
         </div>
 
@@ -127,14 +129,18 @@ const UsernamePage = ({ setUser }) => {
                 disabled={loading}
                 autoComplete='off'
                 spellCheck='false'
+                aria-describedby={error ? 'handle-help handle-error' : 'handle-help'}
+                aria-invalid={!!error}
               />
             </div>
-            <small>Lowercase letters, numbers, underscores. 2–30 chars.</small>
+            <small id='handle-help'>Use 2–30 lowercase letters, numbers, or underscores.</small>
           </div>
 
           {error && (
             <div
               className={`${commonStyles.errorMessage} ${styles.errorShake}`}
+              id='handle-error'
+              role='alert'
             >
               <ShieldAlert size={14} />
               {error}
@@ -167,7 +173,7 @@ const UsernamePage = ({ setUser }) => {
               {loading ? (
                 <><Loader className={styles.loadingIcon} /> Connecting...</>
               ) : (
-                <>Enter <ArrowRight className={styles.icon} /></>
+                <>Enter the arcade <ArrowRight className={styles.icon} /></>
               )}
             </button>
           )}

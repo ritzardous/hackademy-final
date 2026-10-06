@@ -1,7 +1,8 @@
+import CyberArtwork from '../components/CyberArtwork'
 import React, { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { RefreshCw, Gamepad2 } from 'lucide-react'
-import { Trophy } from 'lucide-react'
+
 import { userAPI } from '../utils/api'
 import LeaderboardItem from '../components/LeaderboardItem'
 import styles from '../styles/LeaderboardPage.module.css'
@@ -29,6 +30,7 @@ const LeaderboardPage = ({ currentUser }) => {
 
   const fetchData = async () => {
     setLoading(true)
+    setError('')
     try {
       const [leaderboardResponse, statsResponse] = await Promise.all([
         userAPI.getLeaderboard(20),
@@ -108,11 +110,11 @@ const LeaderboardPage = ({ currentUser }) => {
     <div className={styles.leaderboardPage}>
       <div className={styles.leaderboardHeader}>
         <h2>
-          <Trophy className={styles.headerIcon} /> Our Learning Leaders
+          <CyberArtwork kind="trophy" className={styles.headerIcon} /> Our Learning Leaders
         </h2>
         <p>See who is doing well and get inspired to improve your skills!</p>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
+      <div className={styles.chartGrid}>
         <div className={styles.graphContainer} style={{ marginBottom: 0 }}>
           <h3 className={styles.graphTitle}>Games Played Per Month</h3>
           <ResponsiveContainer width='100%' height={300}>
@@ -122,38 +124,41 @@ const LeaderboardPage = ({ currentUser }) => {
             >
               <defs>
                 <linearGradient id='colorGames' x1='0' y1='0' x2='0' y2='1'>
-                  <stop offset='5%' stopColor='#a855f7' stopOpacity={0.8} />
-                  <stop offset='95%' stopColor='#a855f7' stopOpacity={0.2} />
+                  <stop offset='0%' stopColor='#594082' />
+                  <stop offset='50%' stopColor='#8b68c0' />
+                  <stop offset='100%' stopColor='#bca5ec' />
                 </linearGradient>
               </defs>
               <CartesianGrid
                 strokeDasharray='3 3'
-                stroke='rgba(255, 255, 255, 0.1)'
+                stroke='#c4c9b7'
               />
-              <XAxis dataKey='month' stroke='rgba(255, 255, 255, 0.7)' />
-              <YAxis stroke='rgba(255, 255, 255, 0.7)' />
+              <XAxis dataKey='month' stroke='#62675a' />
+              <YAxis stroke='#62675a' allowDecimals={false} width={36} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: 'rgba(30, 30, 40, 0.95)',
-                  border: '1px solid rgba(168, 85, 247, 0.3)',
-                  borderRadius: '12px',
-                  color: '#fff',
+                  backgroundColor: '#fffef8',
+                  border: '2px solid #20221f',
+                  borderRadius: '0',
+                  color: '#20221f',
                   padding: '12px',
-                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.4)',
+                  boxShadow: '4px 4px 0 #20221f',
                 }}
-                cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+                cursor={{ fill: '#eae4f4' }}
               />
-              <Legend wrapperStyle={{ color: 'rgba(255, 255, 255, 0.8)' }} />
+              <Legend wrapperStyle={{ color: '#20221f' }} />
               <Bar
                 dataKey='games'
+                name='Games played'
                 fill='url(#colorGames)'
-                radius={[10, 10, 0, 0]}
+                radius={[3, 3, 0, 0]}
+                stroke="#594082" strokeWidth={1}
                 barSize={40}
               >
                 <LabelList
                   dataKey='games'
                   position='top'
-                  fill='rgba(255, 255, 255, 0.8)'
+                  fill='#20221f'
                 />
               </Bar>
             </BarChart>
@@ -166,37 +171,38 @@ const LeaderboardPage = ({ currentUser }) => {
             <BarChart
               data={topPlayersData}
               layout="vertical"
-              margin={{ top: 20, right: 30, left: 10, bottom: 5 }}
+              margin={{ top: 20, right: 42, left: 0, bottom: 5 }}
             >
               <defs>
                 <linearGradient id='colorScores' x1='0' y1='0' x2='1' y2='0'>
-                  <stop offset='5%' stopColor='#a855f7' stopOpacity={0.8} />
-                  <stop offset='95%' stopColor='#fb923c' stopOpacity={0.8} />
+                  <stop offset='0%' stopColor='#594082' />
+                  <stop offset='50%' stopColor='#8b68c0' />
+                  <stop offset='100%' stopColor='#bca5ec' />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray='3 3' horizontal={true} vertical={false} stroke='rgba(255, 255, 255, 0.1)' />
-              <XAxis type="number" stroke='rgba(255, 255, 255, 0.7)' />
-              <YAxis dataKey='username' type="category" stroke='rgba(255, 255, 255, 0.7)' width={80} style={{fontSize: '0.85rem'}} />
+              <CartesianGrid strokeDasharray='3 3' horizontal={true} vertical={false} stroke='#c4c9b7' />
+              <XAxis type="number" stroke='#62675a' />
+              <YAxis dataKey='username' type="category" stroke='#62675a' width={108} tickFormatter={name => name.length > 13 ? `${name.slice(0, 12)}…` : name} tickLine={false} axisLine={false} style={{fontSize: '0.8rem'}} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: 'rgba(30, 30, 40, 0.95)',
-                  border: '1px solid rgba(251, 146, 60, 0.3)',
-                  borderRadius: '12px',
-                  color: '#fff',
+                  backgroundColor: '#fffef8',
+                  border: '2px solid #20221f',
+                  borderRadius: '0',
+                  color: '#20221f',
                   padding: '12px',
-                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.4)',
+                  boxShadow: '4px 4px 0 #20221f',
                 }}
-                cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+                cursor={{ fill: '#eae4f4' }}
               />
-              <Bar dataKey='score' fill='url(#colorScores)' radius={[0, 8, 8, 0]} barSize={25}>
-                <LabelList dataKey='score' position='right' fill='rgba(255, 255, 255, 0.8)' style={{fontFamily: 'Orbitron', fontWeight: 'bold'}}/>
+              <Bar dataKey='score' name='Points' fill='url(#colorScores)' radius={[0, 3, 3, 0]} stroke="#594082" strokeWidth={1} barSize={25}>
+                <LabelList dataKey='score' position='right' fill='#20221f' style={{fontFamily: 'Space Grotesk', fontWeight: 'bold'}}/>
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
       {stats && (
-        <div className={styles.statsContainer} style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'center'}}>
+        <div className={styles.statsContainer}>
           <div className={styles.statCard}>
             <span className={styles.statNumber}>{stats.totalUsers}</span>
             <span className={styles.statLabel}>Total Learners</span>
@@ -229,13 +235,13 @@ const LeaderboardPage = ({ currentUser }) => {
       )}
 
       {currentUser && (
-        <div className={styles.userRankBanner} style={{background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.3)', padding: '20px', borderRadius: '12px', textAlign: 'center', marginBottom: '30px'}}>
-           <h3 style={{color: '#fff', fontSize: '1.2rem', fontFamily: 'Orbitron, sans-serif', margin: 0}}>
+        <div className={styles.userRankBanner}>
+           <h3>
               Your Current Rank:{' '}
               {(() => {
                  const myRank = leaderboard.findIndex(u => u.username === currentUser.toLowerCase()) + 1;
-                 if (myRank > 0) return <span style={{color: '#a855f7', fontSize: '1.6rem', marginLeft: '10px'}}>#{myRank}</span>
-                 return <span style={{color: '#a855f7', fontSize: '1.4rem', marginLeft: '10px'}}>Unranked</span>
+                 if (myRank > 0) return <span style={{color: '#7755ab', fontSize: '1.6rem', marginLeft: '10px'}}>#{myRank}</span>
+                 return <span style={{color: '#7755ab', fontSize: '1.4rem', marginLeft: '10px'}}>Unranked</span>
               })()}
            </h3>
         </div>

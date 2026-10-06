@@ -1,6 +1,7 @@
+import CyberArtwork from '../components/CyberArtwork'
 import React, { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Gamepad2, ShieldAlert, Play, BookOpen, Link as LinkIcon } from 'lucide-react'
+import { Play, BookOpen } from 'lucide-react'
 import styles from '../styles/GamesHubPage.module.css'
 
 const GamesHubPage = ({ currentUser }) => {
@@ -28,7 +29,7 @@ const GamesHubPage = ({ currentUser }) => {
         {/* Game 1: MCQ */}
         <Link to="/game" className={styles.gameCard}>
           <div className={styles.iconWrapper}>
-            <Gamepad2 className={styles.gameIcon} />
+            <CyberArtwork kind="arcade" className={styles.gameIcon} />
           </div>
           <h2 className={styles.gameTitle}>Knowledge Check</h2>
           <p className={styles.gameDescription}>
@@ -42,7 +43,7 @@ const GamesHubPage = ({ currentUser }) => {
         {/* Game 2: Phishing Simulator */}
         <Link to="/phishing-game" className={`${styles.gameCard} ${styles.phishing}`}>
           <div className={styles.iconWrapper}>
-            <ShieldAlert className={styles.gameIcon} />
+            <CyberArtwork kind="phishing" className={styles.gameIcon} />
           </div>
           <h2 className={styles.gameTitle}>Phishing Simulator</h2>
           <p className={styles.gameDescription}>
@@ -56,7 +57,7 @@ const GamesHubPage = ({ currentUser }) => {
         {/* Game 3: Link Decoder */}
         <Link to="/link-decoder" className={`${styles.gameCard} ${styles.linkDecoder}`}>
           <div className={styles.iconWrapper}>
-            <LinkIcon className={styles.gameIcon} />
+            <CyberArtwork kind="link" className={styles.gameIcon} />
           </div>
           <h2 className={styles.gameTitle}>The Link Decoder</h2>
           <p className={styles.gameDescription}>

@@ -1,7 +1,9 @@
+import CyberArtwork from '../components/CyberArtwork'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Smartphone, Play, Pause, Gamepad2, ArrowRight } from 'lucide-react'
+import { Play, Pause, Gamepad2, ArrowRight } from 'lucide-react'
 import styles from '../styles/ArticlePage.module.css'
+import ArticleLayout from '../components/ArticleLayout'
 
 const UPIScamPage = () => {
   const [isSpeaking, setIsSpeaking] = useState(false)
@@ -85,9 +87,9 @@ const UPIScamPage = () => {
   }, [])
 
   return (
-    <div className={styles.articlePage}>
+    <ArticleLayout>
       <div className={styles.articleHero}>
-        <Smartphone className={styles.articleIcon} />
+        <CyberArtwork kind="payment" className={styles.articleIcon} />
         <h1>UPI Payment / Refund / Collect Request Scams</h1>
         <p>How UPI based scams work and how to avoid falling victim</p>
         <button
@@ -199,7 +201,7 @@ const UPIScamPage = () => {
           </div>
         </section>
       </div>
-    </div>
+    </ArticleLayout>
   )
 }
 

@@ -1,7 +1,9 @@
+import CyberArtwork from '../components/CyberArtwork'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Briefcase, Play, Pause, Gamepad2, ArrowRight } from 'lucide-react'
+import { Play, Pause, Gamepad2, ArrowRight } from 'lucide-react'
 import styles from '../styles/ArticlePage.module.css'
+import ArticleLayout from '../components/ArticleLayout'
 
 const FakeJobScamPage = () => {
   const [isSpeaking, setIsSpeaking] = useState(false)
@@ -86,9 +88,9 @@ const FakeJobScamPage = () => {
   }, [])
 
   return (
-    <div className={styles.articlePage}>
+    <ArticleLayout>
       <div className={styles.articleHero}>
-        <Briefcase className={styles.articleIcon} />
+        <CyberArtwork kind="job" className={styles.articleIcon} />
         <h1>Fake Job / Work-From-Home / Call-Centre Scams</h1>
         <p>
           Understanding and protecting yourself from fake job and work-from-home
@@ -205,7 +207,7 @@ const FakeJobScamPage = () => {
           </div>
         </section>
       </div>
-    </div>
+    </ArticleLayout>
   )
 }
 

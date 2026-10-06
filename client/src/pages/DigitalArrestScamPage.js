@@ -1,7 +1,9 @@
+import CyberArtwork from '../components/CyberArtwork'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Shield, Play, Pause, Gamepad2, ArrowRight } from 'lucide-react'
+import { Play, Pause, Gamepad2, ArrowRight } from 'lucide-react'
 import styles from '../styles/ArticlePage.module.css'
+import ArticleLayout from '../components/ArticleLayout'
 
 const DigitalArrestScamPage = () => {
   const [isSpeaking, setIsSpeaking] = useState(false)
@@ -84,9 +86,9 @@ const DigitalArrestScamPage = () => {
   }, [])
 
   return (
-    <div className={styles.articlePage}>
+    <ArticleLayout>
       <div className={styles.articleHero}>
-        <Shield className={styles.articleIcon} />
+        <CyberArtwork kind="arrest" className={styles.articleIcon} />
         <h1>Digital Arrest Scam</h1>
         <p>Understanding and protecting yourself from digital arrest scams</p>
         <button
@@ -184,7 +186,7 @@ const DigitalArrestScamPage = () => {
           </div>
         </section>
       </div>
-    </div>
+    </ArticleLayout>
   )
 }
 

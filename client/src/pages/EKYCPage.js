@@ -1,7 +1,9 @@
+import CyberArtwork from '../components/CyberArtwork'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { UserCheck, Play, Pause, Gamepad2, ArrowRight } from 'lucide-react'
+import { Play, Pause, Gamepad2, ArrowRight } from 'lucide-react'
 import styles from '../styles/ArticlePage.module.css'
+import ArticleLayout from '../components/ArticleLayout'
 
 const EKYCPage = () => {
   const [isSpeaking, setIsSpeaking] = useState(false)
@@ -86,9 +88,9 @@ const EKYCPage = () => {
   }, [])
 
   return (
-    <div className={styles.articlePage}>
+    <ArticleLayout>
       <div className={styles.articleHero}>
-        <UserCheck className={styles.articleIcon} />
+        <CyberArtwork kind="identity" className={styles.articleIcon} />
         <h1>e-KYC / Data-Harvesting & SIM-Swap Frauds</h1>
         <p>Understanding data-harvesting, e-KYC attacks, and SIM-swap frauds</p>
         <button
@@ -192,7 +194,7 @@ const EKYCPage = () => {
           </div>
         </section>
       </div>
-    </div>
+    </ArticleLayout>
   )
 }
 

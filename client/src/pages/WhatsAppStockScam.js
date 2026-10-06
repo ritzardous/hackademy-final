@@ -1,7 +1,9 @@
+import CyberArtwork from '../components/CyberArtwork'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertTriangle, Play, Pause, Gamepad2, ArrowRight } from 'lucide-react'
+import { Play, Pause, Gamepad2, ArrowRight } from 'lucide-react'
 import styles from '../styles/ArticlePage.module.css'
+import ArticleLayout from '../components/ArticleLayout'
 
 const WhatsAppStockScamPage = () => {
   const [isSpeaking, setIsSpeaking] = useState(false)
@@ -83,9 +85,9 @@ const WhatsAppStockScamPage = () => {
   }, [])
 
   return (
-    <div className={styles.articlePage}>
+    <ArticleLayout>
       <div className={styles.articleHero}>
-        <AlertTriangle className={styles.articleIcon} />
+        <CyberArtwork kind="phishing" className={styles.articleIcon} />
         <h1>WhatsApp/Telegram Stock Market Group Scam</h1>
         <p>Protect yourself from fraudulent stock market schemes on WhatsApp</p>
         <button
@@ -179,7 +181,7 @@ const WhatsAppStockScamPage = () => {
           </div>
         </section>
       </div>
-    </div>
+    </ArticleLayout>
   )
 }
 
