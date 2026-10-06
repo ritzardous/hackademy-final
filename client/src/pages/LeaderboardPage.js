@@ -1,4 +1,5 @@
 import CyberArtwork from '../components/CyberArtwork'
+import CyberAttackMap from '../components/CyberAttackMap'
 import React, { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { RefreshCw, Gamepad2 } from 'lucide-react'
@@ -114,6 +115,7 @@ const LeaderboardPage = ({ currentUser }) => {
         </h2>
         <p>See who is doing well and get inspired to improve your skills!</p>
       </div>
+      <CyberAttackMap />
       <div className={styles.chartGrid}>
         <div className={styles.graphContainer} style={{ marginBottom: 0 }}>
           <h3 className={styles.graphTitle}>Games Played Per Month</h3>
