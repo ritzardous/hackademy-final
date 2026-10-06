@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { Pause, Play, Shuffle, Globe2 } from 'lucide-react'
+import { Globe2 } from 'lucide-react'
 import styles from '../styles/CyberAttackMap.module.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -31,9 +31,8 @@ const inside = (x, y, polygon) => {
 }
 
 export default function CyberAttackMap() {
-  const host = useRef(null), panel = useRef(null), controls = useRef({ paused: false, route: 0 })
-  const [paused, setPaused] = useState(false), [route, setRoute] = useState(0), [ready, setReady] = useState(false)
-  useEffect(() => { controls.current = { paused, route } }, [paused, route])
+  const host = useRef(null), panel = useRef(null), interaction = useRef(null)
+  const [ready, setReady] = useState(false)
   useEffect(() => {
     const element = host.current
     let cancelled = false, cleanup = () => {}
@@ -48,7 +47,7 @@ export default function CyberAttackMap() {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
       element.appendChild(renderer.domElement)
       const scene = new T.Scene(), camera = new T.PerspectiveCamera(40, 1, .1, 30)
-      camera.position.set(0, .15, 7.7)
+      camera.position.set(0, .1, 7.1)
       const globe = new T.Group()
       scene.add(globe)
       const materials = []
@@ -58,7 +57,9 @@ export default function CyberAttackMap() {
         return new T.Vector3(radius * Math.cos(a) * Math.sin(b), radius * Math.sin(a), radius * Math.cos(a) * Math.cos(b))
       }
       globe.add(new T.Mesh(new T.SphereGeometry(1.78, 48, 32), mat(T.MeshBasicMaterial, { color: 0x191d23 })))
-      globe.add(new T.Mesh(new T.SphereGeometry(1.8, 32, 20), mat(T.MeshBasicMaterial, { color: 0x8571b2, wireframe: true, transparent: true, opacity: .13 })))
+      const gridMaterial = mat(T.LineBasicMaterial, { color: 0xae99e7, transparent: true, opacity: .16 })
+      for (let lat = -60; lat <= 60; lat += 30) globe.add(new T.LineLoop(new T.BufferGeometry().setFromPoints(Array.from({ length: 96 }, (_, i) => point(lat, i * 360 / 96, 1.8))), gridMaterial))
+      for (let lon = 0; lon < 180; lon += 30) globe.add(new T.LineLoop(new T.BufferGeometry().setFromPoints(Array.from({ length: 96 }, (_, i) => point(i * 360 / 96, lon, 1.8))), gridMaterial))
       const atmosphere = mat(T.ShaderMaterial, {
         transparent: true, depthWrite: false, blending: T.AdditiveBlending,
         vertexShader: 'varying vec3 n; varying vec3 v; void main(){ vec4 p=modelViewMatrix*vec4(position,1.0); n=normalize(normalMatrix*normal); v=normalize(-p.xyz); gl_Position=projectionMatrix*p; }',
@@ -74,14 +75,19 @@ export default function CyberAttackMap() {
       const glowMaterial = mat(T.SpriteMaterial, { map: glowTexture, transparent: true, blending: T.AdditiveBlending, depthWrite: false })
       const glow = parent => { const sprite = new T.Sprite(glowMaterial); sprite.scale.set(.25, .25, 1); parent.add(sprite) }
       const positions = []
-      for (let lat = -56; lat < 82; lat += 3) for (let lon = -180; lon < 180; lon += 3) {
+      for (let lat = -56; lat < 82; lat += 2.5) for (let lon = -180; lon < 180; lon += 2.5) {
         if (land.some(polygon => inside(lon, lat, polygon))) positions.push(...point(lat, lon, 1.82).toArray())
       }
       const dots = new T.BufferGeometry()
       dots.setAttribute('position', new T.Float32BufferAttribute(positions, 3))
       globe.add(new T.Points(dots, mat(T.PointsMaterial, { color: 0xc7b6ff, size: .045, sizeAttenuation: true })))
       const nodeMaterial = mat(T.MeshBasicMaterial, { color: 0xc0f75b })
-      cities.forEach(city => { const node = new T.Mesh(new T.SphereGeometry(.045, 8, 8), nodeMaterial); node.position.copy(point(city.lat, city.lon, 1.85)); glow(node); globe.add(node) })
+      const pulses = []
+      cities.forEach(city => { const node = new T.Mesh(new T.SphereGeometry(.045, 8, 8), nodeMaterial); node.position.copy(point(city.lat, city.lon, 1.85)); glow(node); globe.add(node)
+        const pulseMaterial = mat(T.MeshBasicMaterial, { color: 0xc0f75b, transparent: true, opacity: .6, side: T.DoubleSide, depthWrite: false })
+        const pulse = new T.Mesh(new T.RingGeometry(.06, .075, 24), pulseMaterial)
+        pulse.position.copy(point(city.lat, city.lon, 1.86)); pulse.quaternion.setFromUnitVectors(new T.Vector3(0, 0, 1), pulse.position.clone().normalize()); globe.add(pulse); pulses.push(pulse)
+      })
       const attacks = routes.map(([from, to], index) => {
         const start = point(cities[from].lat, cities[from].lon), end = point(cities[to].lat, cities[to].lon)
         const path = new T.CatmullRomCurve3(Array.from({ length: 33 }, (_, i) => start.clone().lerp(end, i / 32).normalize().multiplyScalar(1.84 + Math.sin(i / 32 * Math.PI) * .65)))
@@ -97,16 +103,39 @@ export default function CyberAttackMap() {
       ring.rotation.x = 1.2; ring.rotation.y = .3; scene.add(ring)
       const outer = new T.Mesh(new T.TorusGeometry(2.35, .006, 4, 100), ringMaterial)
       outer.rotation.set(.4, .8, -.4); scene.add(outer)
-      const pointer = { x: 0, y: 0 }, view = { angle: -.8 }
-      const move = event => {
-        if (motion.matches || controls.current.paused) return
-        const rect = element.getBoundingClientRect()
-        gsap.to(pointer, { x: ((event.clientX - rect.left) / rect.width - .5) * .65, y: ((event.clientY - rect.top) / rect.height - .5) * .3, duration: .8, overwrite: true })
+      const stars = new T.BufferGeometry(), starPositions = []
+      for (let i = 0; i < 90; i++) starPositions.push(Math.sin(i * 17.3) * 4.5, Math.cos(i * 13.7) * 3, -1 - (i % 5))
+      stars.setAttribute('position', new T.Float32BufferAttribute(starPositions, 3))
+      scene.add(new T.Points(stars, mat(T.PointsMaterial, { color: 0xae99e7, size: .025, transparent: true, opacity: .5 })))
+      const rotation = { yaw: -.3, pitch: .15, velocity: 0, dragging: false, paused: false, clock: 0, lastInput: -10, dirty: true }
+      interaction.current = rotation
+      let visible = true, frame, last = 0, elapsed = 0, currentRoute = -1, previousX = 0, previousY = 0
+      const down = event => {
+        if (event.button !== 0 || rotation.dragging) return
+        rotation.dragging = true; rotation.velocity = 0; previousX = event.clientX; previousY = event.clientY
+        element.setPointerCapture(event.pointerId); element.dataset.dragging = 'true'
       }
-      const leave = () => gsap.to(pointer, { x: 0, y: 0, duration: 1, overwrite: true })
-      element.addEventListener('pointermove', move); element.addEventListener('pointerleave', leave)
-      let visible = true, frame, last = 0, elapsed = 0, currentRoute = -1
-      globe.rotation.set(.15, -.8, -.12)
+      const move = event => {
+        if (!rotation.dragging) return
+        const dx = event.clientX - previousX, dy = event.clientY - previousY
+        rotation.yaw += dx * .008; rotation.pitch = Math.max(-1.1, Math.min(1.1, rotation.pitch + dy * .005))
+        rotation.velocity = Math.max(-.06, Math.min(.06, dx * .005)); rotation.dirty = true
+        previousX = event.clientX; previousY = event.clientY; rotation.lastInput = elapsed
+      }
+      const up = event => {
+        rotation.dragging = false; rotation.lastInput = elapsed; delete element.dataset.dragging
+        if (element.hasPointerCapture(event.pointerId)) element.releasePointerCapture(event.pointerId)
+      }
+      element.addEventListener('pointerdown', down); element.addEventListener('pointermove', move)
+      element.addEventListener('pointerup', up); element.addEventListener('pointercancel', up)
+      const transitionRoute = index => {
+        attacks.forEach((attack, i) => {
+          const color = new T.Color(i === index ? 0xc0f75b : i === (index + 2) % attacks.length ? 0xe09aff : 0x8062c3)
+          gsap.to(attack.material.color, { r: color.r, g: color.g, b: color.b, duration: .9, overwrite: true })
+          gsap.to(attack.material, { opacity: i === index ? 1 : .38, duration: .9, overwrite: true })
+        })
+      }
+      globe.rotation.set(.15, -.3, -.12)
       const resize = new ResizeObserver(() => {
         const { width, height } = element.getBoundingClientRect()
         if (!width || !height) return
@@ -119,23 +148,25 @@ export default function CyberAttackMap() {
         frame = requestAnimationFrame(tick)
         const delta = Math.min((time - last) / 1000, .05); last = time
         if (!visible || document.hidden) return
-        const routeChanged = currentRoute !== controls.current.route
-        if (routeChanged) {
-          currentRoute = controls.current.route
-          attacks.forEach((attack, i) => { attack.material.color.setHex(i === currentRoute ? 0xc0f75b : 0xae99e7); attack.material.opacity = i === currentRoute ? .95 : .55 })
-          const angle = -cities[routes[currentRoute][0]].lon * Math.PI / 180 - elapsed * .07
-          gsap.killTweensOf(view)
-          if (controls.current.paused || motion.matches) view.angle = angle
-          else gsap.to(view, { angle, duration: 1.3, ease: 'power2.inOut' })
+        if ((rotation.paused || motion.matches) && !rotation.dirty) return
+        if (!rotation.paused && !motion.matches) {
+          elapsed += delta; rotation.clock = elapsed
+          const nextRoute = Math.floor(elapsed / 3.5) % attacks.length
+          if (nextRoute !== currentRoute) { currentRoute = nextRoute; transitionRoute(currentRoute) }
+          if (!rotation.dragging) {
+            rotation.yaw += rotation.velocity * delta * 60
+            rotation.velocity *= Math.pow(.94, delta * 60)
+            if (elapsed - rotation.lastInput > 3) rotation.yaw += delta * .11
+          }
+          ring.rotation.z = elapsed * .08; outer.rotation.y = .8 + Math.sin(elapsed * .17) * .3
+          pulses.forEach((pulse, i) => { const phase = (elapsed * .5 + i / pulses.length) % 1; pulse.scale.setScalar(1 + phase * 5); pulse.material.opacity = (1 - phase) * .7 })
         }
-        if (!routeChanged && (controls.current.paused || motion.matches)) return
-        if (!controls.current.paused && !motion.matches) {
-          elapsed += delta
-          ring.rotation.z = elapsed * .04
-        }
-        globe.rotation.y = view.angle + elapsed * .07 + pointer.x
-        globe.rotation.x = .15 + pointer.y
-        attacks.forEach((attack, i) => { attack.packet.position.copy(attack.path.getPointAt((elapsed * .23 + i / 8) % 1)); attack.packet.scale.setScalar(i === currentRoute ? 1.6 : .7) })
+        rotation.dirty = false
+        globe.rotation.y = rotation.yaw; globe.rotation.x = rotation.pitch
+        attacks.forEach((attack, i) => {
+          attack.packet.position.copy(attack.path.getPointAt((elapsed * (.2 + i * .015) + i / 8) % 1))
+          attack.packet.scale.setScalar(i === currentRoute ? 1.8 : 1)
+        })
         renderer.render(scene, camera)
       }
       frame = requestAnimationFrame(tick)
@@ -143,22 +174,32 @@ export default function CyberAttackMap() {
       const lost = event => { event.preventDefault(); setReady(false) }
       renderer.domElement.addEventListener('webglcontextlost', lost)
       cleanup = () => {
-        cancelAnimationFrame(frame); resize.disconnect(); observer.disconnect(); gsap.killTweensOf(pointer); gsap.killTweensOf(view)
-        element.removeEventListener('pointermove', move); element.removeEventListener('pointerleave', leave)
+        cancelAnimationFrame(frame); resize.disconnect(); observer.disconnect(); attacks.forEach(attack => { gsap.killTweensOf(attack.material); gsap.killTweensOf(attack.material.color) }); interaction.current = null
+        element.removeEventListener('pointerdown', down); element.removeEventListener('pointermove', move); element.removeEventListener('pointerup', up); element.removeEventListener('pointercancel', up)
         renderer.domElement.removeEventListener('webglcontextlost', lost)
         scene.traverse(object => object.geometry?.dispose()); materials.forEach(material => material.dispose()); glowTexture.dispose()
         renderer.dispose(); renderer.forceContextLoss(); renderer.domElement.remove()
       }
-    }).catch(() => { /* The static globe and route text remain available without WebGL. */ })
+    }).catch(() => { /* Keep the static globe when WebGL is unavailable. */ })
     return () => { cancelled = true; cleanup(); intro.revert() }
   }, [])
-  const [from, to] = routes[route]
+  const rotateWithKeys = event => {
+    const rotation = interaction.current
+    if (!rotation) return
+    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(event.key)) {
+      event.preventDefault()
+      if (event.key === ' ') rotation.paused = !rotation.paused
+      if (event.key === 'ArrowLeft') rotation.yaw -= .15
+      if (event.key === 'ArrowRight') rotation.yaw += .15
+      if (event.key === 'ArrowUp') rotation.pitch = Math.max(-1.1, rotation.pitch - .1)
+      if (event.key === 'ArrowDown') rotation.pitch = Math.min(1.1, rotation.pitch + .1)
+      rotation.velocity = 0; rotation.dirty = true; rotation.lastInput = rotation.clock
+    }
+  }
   return <section className={styles.panel} ref={panel} aria-labelledby="attack-map-title">
-    <div className={styles.topbar}><span><Globe2 size={18} /> Cyber attack map</span><span className={styles.simulation}>Simulation</span></div>
-    <div className={styles.body}>
-      <div className={styles.copy}><h2 id="attack-map-title">Threats move fast.<br /><span>So do we.</span></h2><p>A little global chaos. A lot of human firewall energy.</p><div className={styles.route} aria-live="polite"><span>Simulated route</span><strong>{cities[from].name} <span aria-hidden="true">→</span> {cities[to].name}</strong></div><div className={styles.actions}><button onClick={() => setRoute(value => (value + 1) % routes.length)}><Shuffle size={16} /> Reroute</button><button aria-pressed={paused} onClick={() => setPaused(value => !value)}>{paused ? <Play size={16} /> : <Pause size={16} />}{paused ? 'Resume' : 'Pause'}</button></div></div>
-      <div className={styles.visual} ref={host} aria-hidden="true">{!ready && <div className={styles.fallback}><Globe2 size={180} strokeWidth={.6} /></div>}<span className={styles.orbitLabel}>HUMAN FIREWALL / ONLINE</span></div>
+    <h2 id="attack-map-title">Threats move fast.<br /><span>So do we.</span></h2>
+    <div className={styles.visual} ref={host} tabIndex={0} role="img" aria-label="Interactive cyber globe. Drag or use arrow keys to rotate. Space pauses or resumes animation." onKeyDown={rotateWithKeys}>
+      {!ready && <div className={styles.fallback}><Globe2 size={180} strokeWidth={.6} /></div>}
     </div>
-    <div className={styles.bottom}><span><i /> Lime: selected route</span><span>Illustrative traffic. No live threat data.</span></div>
   </section>
 }
